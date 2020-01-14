@@ -1,4 +1,4 @@
-# 50.002-Computational-Structures
+# 50.002-Computational-Structures-LABS
 SUTD 50.002 Computational Structures lab session
 
 Labs and the following naming-  
