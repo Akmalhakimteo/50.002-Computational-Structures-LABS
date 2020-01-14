@@ -1,0 +1,26 @@
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\nominal.jsim"
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\lab2checkoff.jsim"
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\library.jsim"
+
+.subckt FA A B Ci S Co
+*Xp a b p nor2 
+Xxor_1 A B xi xor2
+Xxor_2 xi Ci S xor2
+Xnand_1 xi Ci n1 nand2
+Xnand_2 A B n2 nand2
+Xnand_3 n1 n2 Co nand2
+.ends
+
+.subckt ADDER4 a3 a2 a1 a0 b3 b2 b1 b0 s4 s3 s2 s1 s0
+* remember the node named "0" is the ground node
+* nodes c0 through c3 are internal to the ADDER module
+Xbit0 a0 b0 0 s0 c0 FA
+Xbit1 a1 b1 c0 s1 c1 FA
+Xbit2 a2 b2 c1 s2 c2 FA
+Xbit3 a3 b3 c2 s3 s4 FA
+.ends
+
+
+
+
+

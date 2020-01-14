@@ -1,0 +1,144 @@
+.include C:\Users\akmal\OneDrive\Desktop\SUTD\bsimthing\50002\beta.uasm
+.include C:\Users\akmal\OneDrive\Desktop\SUTD\bsimthing\50002\lab5checkoff.uasm
+|THIS IS BEFORE CHANGES TO SORT THE THINGY IN ORDER
+
+count_bull_cows:        | your subroutine must have this name
+PUSH(LP)                | standard subroutine entry sequence
+PUSH(BP)
+MOVE(SP, BP)
+
+PUSH(R1)                            |A
+PUSH(R2)                            |B
+PUSH(R3)                            |BULLS
+PUSH(R4)                            |COWS
+PUSH(R5)                            |MASK
+PUSH(R6)                            |INT I 
+PUSH(R7)                            |ATRY
+PUSH(R8)                            |BTRY
+PUSH(R9)                            |BTEMP 
+PUSH(R10)                           |INT J 
+PUSH(R11)			    |other useful registers for comparisons  FORCHECK1 COMPARATOR
+PUSH(R12)			    |other useful registers for comparisons
+PUSH(R13)			    |other useful registers for comparisons
+PUSH(R14) 			    |other useful registers for comparisons
+PUSH(R15) 			    |other useful registers for comparisons
+PUSH(R16) 			    |other useful registers for comparisons
+
+LD(BP,-12,R1)                       |A(R1)
+LD(BP,-16,R2)			    |B(R2)
+CMOVE(0,R3)			    |BULLS = 0
+CMOVE(0xF,R5)  		            |MASK = 0xF   CHECKED
+CMOVE(0,R6)			    |I=0
+BR(CHECKFIRSTFORLOOP)
+
+CHECKFIRSTFORLOOP:
+CMPLTC(R6,4,R11)                    |I<4 THEN GO TO FIRST FOR LOOP
+BT(R11,FIRSTFORLOOP,R31)
+BR(SECONDBODY)
+
+
+FIRSTFORLOOP:
+AND(R1,R5,R11)			    |A & MASK (R11)
+AND(R2,R5,R12)			    |B & MASK (R12)
+CMPEQ(R11,R12,R13)	            |COMPARE R11==R12, STORE RESULT INTO R13
+BT(R13,FIRSTIF,R31) 		    |IF TRUE GO TO FIRSTIF
+SHLC(R5,4,R5)                       |MASK = MASK << 4
+ADDC(R6,1,R6)			    |I++
+BR(CHECKFIRSTFORLOOP)
+
+FIRSTIF: 
+ADDC(R3,1,R3)                       |BULLS++
+OR(R1,R5,R1)                        |R1 OR MASK, STORE INTO R1
+OR(R2,R5,R2)                        |R2 OR MASK, STORE INTO R2
+SHLC(R5,4,R5)                       |MASK = MASK << 4
+ADDC(R6,1,R6)			    |I++
+BR(CHECKFIRSTFORLOOP)
+
+CHECKSECONDFORLOOP:
+CMPLTC(R6,4,R11)                    |I<4 THEN GO TO FIRST FOR LOOP
+BT(R11,SECONDFORLOOP,R31)
+BR(END)
+
+SECONDFORLOOP:
+ANDC(R1,0xF,R7)  		    |ATRY = A& MASK
+SHRC(R1,4,R1) 			    |A>>4
+CMPEQC(R7,0xF,R15)                  |COMPARE EQUAL A == MASK , STORE IN R15
+BT(R15,EXITIF2,R31)  		    |IF A == MASK, IF CONDITION NOT FULFILLED, BRANCH TO EXITIF2
+ADDC(R2,0,R9)                       |BTEMP = B
+CMOVE(0xF,R5)			    |RESET MASK TO 0xF
+CMOVE(0,R10)			    |INT J = 0
+BR(CHECKTHIRDFORLOOP)	            |BRANCH TO CHECKTHIRDFORLOOP
+
+EXITIF2: |checked2-1
+ADDC(R6,1,R6)                       |I++
+BR(CHECKSECONDFORLOOP)
+
+CHECKTHIRDFORLOOP: 
+CMPLTC(R10,4,R11)                    |I<4 THEN GO TO FIRST FOR LOOP
+BT(R11,THIRDFORLOOP,R31)
+ADDC(R6,1,R6)     
+BR(CHECKSECONDFORLOOP)
+
+
+THIRDFORLOOP:
+ANDC(R9,0xF,R8)			    |BTRY = BTEMP & 0XF
+SHRC(R9,4,R9)			    |BTEMP = BTEMP >> 4
+CMPEQ(R8,R7,R16)		    |BTRY == ATRY , STORE IN R16
+BEQ(R16,EXITIF3,R31)                 |IF R16=0, MEANING THE == STATEMENT IS FALSE, EXIT IF LOOP
+ADDC(R4,1,R4)			    |COWS++
+OR(R2,R5,R2)			    |B = B | MASK
+BR(EXITIF2) 		            |BREAK
+
+EXITIF3: |checked2-1
+SHLC(R5,4,R5)			    |MASK = MASK << 4
+ADDC(R10,1,R10)			    | J++
+BR(CHECKTHIRDFORLOOP)
+
+SECONDBODY:
+CMOVE(0,R4)
+CMOVE(0,R6)
+BR(CHECKSECONDFORLOOP)
+
+END:
+SHLC(R3,4,R3) 		 	    |BULLS<<4
+ADD(R3,R4,R0) 			    |STORE BULLS << 4 + COWS AND PUT INTO R0
+
+
+POP(R16)			    |POP IN REVERSE ORDER
+POP(R15)
+POP(R14)
+POP(R13)
+POP(R12)
+POP(R11)
+POP(R10)
+POP(R9)
+POP(R8)
+POP(R7)
+POP(R6)
+POP(R5)
+POP(R4)
+POP(R3)
+POP(R2)
+POP(R1)
+MOVE(BP,SP)                         | standard subroutine exit sequence
+POP(BP)
+POP(LP)
+RTN()
+
+StackBase:
+	LONG(.+4)                           | Pointer to bottom of stack
+	. = .+0x1000                        | Reserve space for stack...
+	
+
+
+
+
+
+
+
+
+
+
+
+
+

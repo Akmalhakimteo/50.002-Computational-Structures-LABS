@@ -1,0 +1,206 @@
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\nominal.jsim"
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\stdcell.jsim" 
+.include "C:\Users\akmal\OneDrive\Desktop\SUTD\TERM 4\Comp struct\courseware\50002\lab3checkoff_10.jsim"
+
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+Xadder ALUFN[0] A[31:0] B[31:0] intermediate_s[31:0] z v n adder32
+Xboole ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
+Xshift ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32
+Xcmp ALUFN[2:1] z v n cmp[31:0] compare32
+Xfinal32mux ALUFN[4]#32 ALUFN[5]#32 s[31:0] boole[31:0] shift[31:0] cmp[31:0] ALU[31:0] mux4
+Xmultiplier A[31:0] B[31:0] product[31:0] multiply
+Xselectlogic ALUFN0#32 ALUFN1#32 intermediate_s[31:0] intermediate_s[31:0] product[31:0] 0#32 s[31:0] mux4
+*XfinalMUX ALUFN[4]#32 ALUFN[5]#32 either[31:0] boole[31:0] shift[31:0] cmp[31:0] ALU[31:0] mux4
+.ends
+
+
+
+
+
+
+.subckt FA A B Ci S Co
+*Xp a b p nor2 
+Xxor_1 A B xi xor2
+Xxor_2 xi Ci S xor2
+Xnand_1 xi Ci n1 nand2
+Xnand_2 A B n2 nand2
+Xnand_3 n1 n2 Co nand2
+.ends
+
+.subckt normal32adder A[31:0] XB[31:0] ci s[31:0] co
+Xfulladderlast A[0] XB[0] ci s[0] c[0] FA 
+XfulladderfirstTo32 A[31:1] XB[31:1] c[30:0] s[31:1] c[31:1] FA 
+Xlast A[31] XB[31] c[30] s[31] co FA
+.ends
+
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+Xfulladderlast A[0] XB[0] ALUFN[0] s[0] c[0] FA 
+XfulladderfirstTo32 A[31:1] XB[31:1] c[30:0] s[31:1] c[31:1] FA 
+Xxorgates B[31:0] ALUFN0#32 XB[31:0] xor2 
+
+Xnor_all s[7:0] s[15:8] s[23:16] s[31:24] P[7:0] nor4
+Xand2_secondlayer P[7:4] P[3:0] K[3:0] and2
+Xand4_lastlayer K[3] K[2] K[1] K[0] z and4
+
+Xinv_a A[31] bar_a inverter_2
+Xinv_b XB[31] bar_b inverter_2
+Xinv_s s[31] bar_s inverter_2
+Xleftcondition A[31] XB[31] bar_s output_left and3
+Xrightcondition bar_a bar_b s[31] output_right and3
+Xtotalcondition output_left output_right v or2
+.connect s[31] n 
+.ends
+
+
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+Xstart cmp[31:1] constant0   
+Xnxorv n v result xor2
+Xznv z result result_2 or2
+Xchooser ALUFN[1] ALUFN[2] 0 z result result_2 cmp[0] mux4    //what is cmp[0] do
+.ends
+
+.subckt boole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0]
+Xbooleanstuff A[31:0] B[31:0] ALUFN0#32 ALUFN1#32 ALUFN2#32 ALUFN3#32 boole[31:0] mux4
+.ends
+
+
+.subckt shift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0]
+*shift left 16 BITS
+Xtop16shiftleft B4#16 A[31:16] A[15:0] W[31:16] mux2
+Xbottom16shiftleft B4#16 A[15:0] 0#16 W[15:0] mux2
+
+*shift left 8 bits
+Xtop8shiftleft B3#24 W[31:8] W[23:0] X[31:8] mux2
+Xbottom8shiftleft B3#8 W[7:0] 0#8 X[7:0] mux2
+
+*shift left 4 bits
+Xtop4shiftleft B2#28 X[31:4] X[27:0] Y[31:4] mux2
+Xbottom4shiftleft B2#4 X[3:0] 0#4 Y[3:0] mux2
+
+*shift left 2 bits
+Xtop2shiftleft B1#30 Y[31:2] Y[29:0] Z[31:2] mux2
+Xbottom2shiftleft B1#2 Y[1:0] 0#2 Z[1:0] mux2
+
+*shift left 1 bit
+Xtop1shiftleft B0#31 Z[31:1] Z[30:0] SL[31:1] mux2
+Xbottom1shiftleft B0#1 Z[0] 0#1 SL[0] mux2
+
+*shift right 16 bits
+Xtop16shiftright B4#16 A[31:16] 0#16 WR[31:16] mux2
+Xbottom16shiftright B4#16 A[15:0] A[31:16] WR[15:0] mux2
+
+*shift right 8 bits
+Xbottom8shiftright B3#8 WR[31:24] 0#8 XR[31:24] mux2
+Xtop8shiftright B3#24 WR[23:0] WR[31:8] XR[23:0] mux2
+
+*shift right 4 bits
+Xleftside4bits B2#4 XR[31:28] 0#4 YR[31:28] mux2
+Xrightside4bits B2#28 XR[27:0] XR[31:4] YR[27:0] mux2
+
+*shift right 2 bits
+Xleftside2bits B1#2 YR[31:30] 0#2 ZR[31:30] mux2
+Xrightside2bits B1#30 YR[29:0] YR[31:2] ZR[29:0] mux2
+
+*shift right 1 bit
+Xleftside1bit B0#1 ZR[31] 0 SR[31] mux2
+Xrightride B0#31  ZR[30:0] ZR[31:1] SR[30:0] mux2
+
+*shift right arithmetic
+
+*shift right 16 bits
+Xtop16shiftrightA B4#16 A[31:16] A[31]#16 WRA[31:16] mux2
+Xbottom16shiftrightA B4#16 A[15:0] A[31:16] WRA[15:0] mux2
+
+*shift right 8 bits
+Xbottom8shiftrightA B3#8 WRA[31:24] WRA[31]#8 XRA[31:24] mux2
+Xtop8shiftrightA B3#24 WRA[23:0] WRA[31:8] XRA[23:0] mux2
+
+*shift right 4 bits
+Xleftside4bitsA B2#4 XRA[31:28] XRA[31]#4 YRA[31:28] mux2
+Xrightside4bitsA B2#28 XRA[27:0] XRA[31:4] YRA[27:0] mux2
+
+*shift right 2 bits
+Xleftside2bitsA B1#2 YRA[31:30] YRA[31]#2 ZRA[31:30] mux2
+Xrightside2bitsA B1#30 YRA[29:0] YRA[31:2] ZRA[29:0] mux2
+
+*shift right 1 bit
+Xleftside1bitA B0#1 ZRA[31] ZRA[31] SRA[31] mux2
+XrightrideA B0#31  ZRA[30:0] ZRA[31:1] SRA[30:0] mux2
+
+Xmuxchooser ALUFN[0]#32 ALUFN[1]#32 SL[31:0] SR[31:0] 0#32 SRA[31:0]  shift[31:0] mux4
+
+.ends
+
+.subckt scAdder a[31:0] b[31:0] ci s[31:0] co
+Xfirst a[0] b[0] ci s[0] carry[0] FA
+Xmid a[30:1] b[30:1] carry[29:0] s[30:1] carry[30:1] FA
+Xlast a[31] b[31] carry[30] s[31] co FA
+.ends
+
+.subckt  multiply A[31:0] B[31:0] product[31:0]
+Xand1 A[31:0] B[0]#32 LevelA[31:0] and2  
+Xand2 A[31:0] B[1]#32 LevelB[31:0] and2
+Xand3 A[31:0] B[2]#32 LevelC[31:0] and2
+Xand4 A[31:0] B[3]#32 LevelD[31:0] and2
+Xand5 A[31:0] B[4]#32 LevelE[31:0] and2
+Xand6 A[31:0] B[5]#32 LevelF[31:0] and2
+Xand7 A[31:0] B[6]#32 LevelG[31:0] and2
+Xand8 A[31:0] B[7]#32 LevelH[31:0] and2
+Xand9 A[31:0] B[8]#32 LevelI[31:0] and2
+Xand10 A[31:0] B[9]#32 LevelJ[31:0] and2
+Xand11 A[31:0] B[10]#32 LevelK[31:0] and2
+Xand12 A[31:0] B[11]#32 LevelL[31:0] and2
+Xand13 A[31:0] B[12]#32 LevelM[31:0] and2
+Xand14 A[31:0] B[13]#32 LevelN[31:0] and2
+Xand15 A[31:0] B[14]#32 LevelO[31:0] and2
+Xand16 A[31:0] B[15]#32 LevelP[31:0] and2
+Xand17 A[31:0] B[16]#32 LevelQ[31:0] and2
+Xand18 A[31:0] B[17]#32 LevelR[31:0] and2
+Xand19 A[31:0] B[18]#32 LevelS[31:0] and2
+Xand20 A[31:0] B[19]#32 LevelT[31:0] and2
+Xand21 A[31:0] B[20]#32 LevelU[31:0] and2
+Xand22 A[31:0] B[21]#32 LevelV[31:0] and2
+Xand23 A[31:0] B[22]#32 LevelW[31:0] and2
+Xand24 A[31:0] B[23]#32 LevelX[31:0] and2
+Xand25 A[31:0] B[24]#32 LevelY[31:0] and2
+Xand26 A[31:0] B[25]#32 LevelZ[31:0] and2
+Xand27 A[31:0] B[26]#32 LevelAA[31:0] and2
+Xand28 A[31:0] B[27]#32 LevelAB[31:0] and2
+Xand29 A[31:0] B[28]#32 LevelAC[31:0] and2
+Xand30 A[31:0] B[29]#32 LevelAD[31:0] and2
+Xand31 A[31:0] B[30]#32 LevelAE[31:0] and2
+Xand32 A[31:0] B[31]#32 LevelAF[31:0] and2
+
+Xadded1 LevelA[31:0] LevelB[30:0]  0       0 outA[31:0] t0 scAdder
+Xadded2 outA[31:0]   LevelC[29:0] 0#2      0 outB[31:0] t1 scAdder
+Xadded3 outB[31:0]   LevelD[28:0] 0#3      0 outC[31:0] t2 scAdder
+Xadded4 outC[31:0]   LevelE[27:0] 0#4      0 outD[31:0] t3 scAdder
+Xadded5 outD[31:0]   LevelF[26:0] 0#5      0 outE[31:0] t4 scAdder
+Xadded6 outE[31:0]   LevelG[25:0] 0#6      0 outF[31:0] t5 scAdder
+Xadded7 outF[31:0]   LevelH[24:0] 0#7      0 outG[31:0] t6 scAdder
+Xadded8 outG[31:0]   LevelI[23:0] 0#8      0 outH[31:0] t7 scAdder
+Xadded9 outH[31:0]   LevelJ[22:0] 0#9      0 outI[31:0] t8 scAdder
+Xadded10 outI[31:0]   LevelK[21:0] 0#10      0 outJ[31:0] t9 scAdder
+Xadded11 outJ[31:0]   LevelL[20:0] 0#11      0 outK[31:0] t10 scAdder
+Xadded12 outK[31:0]   LevelM[19:0] 0#12      0 outL[31:0] t11 scAdder
+Xadded13 outL[31:0]   LevelN[18:0] 0#13      0 outM[31:0] t12 scAdder
+Xadded14 outM[31:0]   LevelO[17:0] 0#14      0 outN[31:0] t13 scAdder
+Xadded15 outN[31:0]   LevelP[16:0] 0#15      0 outO[31:0] t14 scAdder
+Xadded16 outO[31:0]   LevelQ[15:0] 0#16      0 outP[31:0] t15 scAdder                                              
+Xadded17 outP[31:0]   LevelR[14:0] 0#17      0 outQ[31:0] t16 scAdder
+Xadded18 outQ[31:0]   LevelS[13:0] 0#18      0 outR[31:0] t17 scAdder
+Xadded19 outR[31:0]   LevelT[12:0] 0#19      0 outS[31:0] t18 scAdder
+Xadded20 outS[31:0]   LevelU[11:0] 0#20      0 outT[31:0] t19 scAdder
+Xadded21 outT[31:0]   LevelV[10:0] 0#21      0 outU[31:0] t20 scAdder
+Xadded22 outU[31:0]   LevelW[9:0] 0#22      0 outV[31:0] t21 scAdder
+Xadded23 outV[31:0]   LevelX[8:0] 0#23      0 outW[31:0] t22 scAdder
+Xadded24 outW[31:0]   LevelY[7:0] 0#24      0 outX[31:0] t23 scAdder
+Xadded25 outX[31:0]   LevelZ[6:0] 0#25     0 outY[31:0] t24 scAdder
+Xadded26 outY[31:0]   LevelAA[5:0] 0#26     0 outZ[31:0] t25 scAdder
+Xadded27 outZ[31:0]   LevelAB[4:0] 0#27      0 outAA[31:0] t26 scAdder
+Xadded28 outAA[31:0]   LevelAC[3:0] 0#28      0 outAB[31:0] t27 scAdder
+Xadded29 outAB[31:0]   LevelAD[2:0] 0#29      0 outAC[31:0] t28 scAdder
+Xadded30 outAC[31:0]   LevelAE[1:0] 0#30      0 outAD[31:0] t29 scAdder
+Xadded31 outAD[31:0]   LevelAF[0] 0#31      0 product[31:0] t30 scAdder
+
+.ends
