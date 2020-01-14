@@ -1,7 +1,7 @@
 # 50.002-Computational-Structures
 SUTD 50.002 Computational Structures lab session
 
-Labs and the following naming- \n
+Labs and the following naming- 
 Lab 1 - test1.bak
 Lab 2 - labcheckoff2.jsim.bak
 Lab 3 - week5_lab3_finalcheckoff.bak
